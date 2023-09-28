@@ -1,13 +1,15 @@
-default: init docker
+default: init build run
 
 init:
 	go mod init terrasync || true
 	go mod tidy
 
-docker:
-	docker build --tag terrasync .
-	docker run -v $$(pwd)/terraform:/terraform -d terrasync
+build:
+	CGO_ENABLED=0 GOOS=linux go build -o ./terrasync
 
-clean:
-	docker stop $$(docker ps -aq) 2> /dev/null || true
-	docker rm $$(docker ps -aq) 2> /dev/null || true
+run:
+	TERRASYNC_ROOT_WORKING_DIR=./terraform TERRASYNC_SYNC_TIME_SECONDS=7 ./terrasync
+
+docker:
+	docker buildx build --tag terrasync .
+	docker run -v $$(pwd)/terraform:/terraform -p 8080:8080 -d terrasync

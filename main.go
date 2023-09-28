@@ -1,38 +1,26 @@
 package main
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
-	"io/fs"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
+	"strconv"
 	"time"
 
-	"github.com/hashicorp/terraform-exec/tfexec"
+	"terrasync/src"
 )
 
 const (
-	tfPlanPath       = "./terrasync.tf.plan"
-	tfRootWorkingDir = "/terraform"
-	syncTimeSeconds  = 120
+	tfPlanPath        = "./terrasync.tf.plan"
+	tfRootWorkingDir  = "/terraform"
+	tfSyncTimeSeconds = "120"
 )
 
-type TfObject struct {
-	Path   string
-	Synced string
-	Msg    string
-}
-
-// var tfPlanOutClean = [2]string{
-// 	"You can apply this plan to save these new output values to the Terraform",
-// 	"state, without changing any real infrastructure.",
-// }
-
 func main() {
-	// Get Terraform executable path from $PATH
 	tfExecPath, err := exec.LookPath("terraform")
 	if err == nil {
 		tfExecPath, err = filepath.Abs(tfExecPath)
@@ -46,60 +34,51 @@ func main() {
 		rootWorkingDir = tfRootWorkingDir
 	}
 
-	// Recursivly find all directories with .tf extension files
-	dirs := []string{}
-	filepath.WalkDir(rootWorkingDir, func(s string, d fs.DirEntry, e error) error {
-		if e != nil {
-			return e
-		}
+	syncTimeSeconds := os.Getenv("TERRASYNC_SYNC_TIME_SECONDS")
+	if syncTimeSeconds == "" {
+		syncTimeSeconds = tfSyncTimeSeconds
+	}
 
-		dir := filepath.Dir(s)
-		if filepath.Ext(d.Name()) == ".tf" && !slices.Contains(dirs, dir) {
-			dirs = append(dirs, dir)
-		}
+	syncTimeSecondsInt, err := strconv.Atoi(syncTimeSeconds)
+	if err != nil {
+		log.Fatalf("Error running Atoi: %s", err)
+	}
 
-		return nil
+	// Find all directories with .tf files
+	dirs := src.FindTfDirs(rootWorkingDir)
+
+	// Prepare variable to receive terrasyncChannel output
+	result := make([]src.TfObject, len(dirs))
+
+	http.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		for i := range result {
+			j, _ := json.MarshalIndent(result[i], "", "  ")
+			fmt.Fprintf(w, "%s\n", j)
+		}
 	})
 
-	// Execute Terraform commands on all directories
+	// Open HTTP channel using goroutine so terraform plan routine runs forever
+	// and updates the server respose
+	httpChannel := make(chan bool)
+	go http.ListenAndServe(":8080", nil)
+	log.Println("Listening on port 8080...")
+
+	terrasyncChannel := make(chan src.TfObject)
 	for true {
-		for _, workingDir := range dirs {
-			obj := TfObject{Path: workingDir}
-			tf, err := tfexec.NewTerraform(workingDir, tfExecPath)
-			if err != nil {
-				log.Fatalf("Error running NewTerraform: %s", err)
-			}
-
-			planOpts := []tfexec.PlanOption{
-				tfexec.Lock(false),
-				tfexec.Out(tfPlanPath),
-			}
-
-			plan, err := tf.Plan(context.Background(), planOpts...)
-			if err != nil {
-				obj.Synced = fmt.Sprintf("%q", plan)
-				obj.Msg = fmt.Sprintf("%q", err) // if obj.Msg != "": error
-				fmt.Printf("%+v\n", obj)
-				continue
-			}
-
-			obj.Synced = fmt.Sprintf("%q", plan)
-			fmt.Printf("%+v\n", obj)
-
-			// if plan {
-			// 	planOut, err := tf.ShowPlanFileRaw(context.Background(), tfPlanPath)
-			// 	if err != nil {
-			// 		log.Fatalf("error running ShowPlanFileRaw: %s", err)
-			// 	}
-			//
-			// 	for _, s := range tfPlanOutClean {
-			// 		planOut = strings.TrimSuffix(strings.ReplaceAll(planOut, s, ""), "\n")
-			// 	}
-			//
-			// 	fmt.Printf("%q %s---\n", workingDir, planOut)
-			// }
+		// Run terraform plan on all dirs with goroutine
+		for _, dir := range dirs {
+			go src.TfExec(dir, tfExecPath, tfPlanPath, terrasyncChannel)
 		}
 
-		time.Sleep(syncTimeSeconds * time.Second)
+		// Get all terraform dirs output status from channel and assign to a variable
+		for i := range result {
+			result[i] = <-terrasyncChannel
+			// fmt.Println(result[i])
+		}
+
+		time.Sleep(time.Duration(syncTimeSecondsInt) * time.Second)
 	}
+
+	<-httpChannel
 }
