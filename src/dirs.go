@@ -5,6 +5,7 @@ import (
 	"log"
 	"path/filepath"
 	"slices"
+	"strings"
 )
 
 func FindTfDirs(rootWorkingDir string) []string {
@@ -15,7 +16,10 @@ func FindTfDirs(rootWorkingDir string) []string {
 		}
 
 		dir := filepath.Dir(s)
-		if filepath.Ext(d.Name()) == ".tf" && !slices.Contains(dirs, dir) {
+		// Dir must contain .tf files
+		// Dir must be unique within slice
+		// Excluding dirs with ".terraform/" in their path, because they are download modules
+		if filepath.Ext(d.Name()) == ".tf" && !slices.Contains(dirs, dir) && !strings.Contains(dir, ".terraform/") {
 			dirs = append(dirs, dir)
 		}
 
