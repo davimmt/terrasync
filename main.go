@@ -57,7 +57,7 @@ func main() {
 		t.SetOutputMirror(w)
 		t.SetAllowedRowLength(210)
 		t.AppendHeader(table.Row{"PATH", "SYNCED", "OUTPUT"})
-		removeFromPath := regexp.MustCompile(`(/[^/]+){1,5}$`)
+		removeFromPath := regexp.MustCompile(`(/?[^/]+){1,5}$`)
 
 		for i := range result {
 			msg := result[i].Msg
