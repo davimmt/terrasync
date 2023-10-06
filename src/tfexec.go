@@ -29,6 +29,12 @@ func TfExec(workingDir string, tfExecPath string, tfPlanPath string, c chan TfOb
 	}
 
 	obj.Error = false
+
+	err = tf.Init(context.Background(), tfexec.Upgrade(true))
+	if err != nil {
+		log.Fatalf("error running Init: %s", err)
+	}
+
 	planOpts := []tfexec.PlanOption{
 		tfexec.Lock(false),
 		tfexec.Out(tfPlanPath),
