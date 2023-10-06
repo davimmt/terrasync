@@ -1,15 +1,16 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 
 	"terrasync/src"
 )
@@ -52,10 +53,40 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
+		t := table.NewWriter()
+		t.SetOutputMirror(w)
+		t.SetAllowedRowLength(210)
+		t.AppendHeader(table.Row{"PATH", "SYNCED", "OUTPUT"})
+		removeFromPath := regexp.MustCompile(`(/[^/]+){1,5}$`)
+
 		for i := range result {
-			j, _ := json.MarshalIndent(result[i], "", "  ")
-			fmt.Fprintf(w, "%s\n", j)
+			msg := result[i].Msg
+			outOfSync := result[i].OutOfSync
+			var synced string
+			path := result[i].Path
+
+			if result[i].Error {
+				synced = "error"
+			} else if !outOfSync {
+				synced = "true"
+				msg = "synced"
+			} else if outOfSync {
+				synced = "false"
+			}
+
+			if path == "" {
+				path = "In progress..."
+				msg = "---"
+				synced = "unknown"
+			} else {
+				path = removeFromPath.FindString(path)
+			}
+
+			t.AppendRow([]interface{}{path, synced, msg})
+			t.AppendSeparator()
 		}
+
+		t.Render()
 	})
 
 	// Open HTTP channel using goroutine so terraform plan routine runs forever

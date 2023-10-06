@@ -36,7 +36,7 @@ func TfExec(workingDir string, tfExecPath string, tfPlanPath string, c chan TfOb
 	plan, err := tf.Plan(context.Background(), planOpts...)
 	if err != nil {
 		obj.Error = true
-		obj.Msg = fmt.Sprintf("%q", err)
+		obj.Msg = fmt.Sprintf("%s", err)
 	}
 
 	obj.OutOfSync = plan
@@ -51,7 +51,7 @@ func TfExec(workingDir string, tfExecPath string, tfPlanPath string, c chan TfOb
 			planOut = strings.TrimSuffix(strings.ReplaceAll(planOut, s, ""), "\n")
 		}
 
-		obj.Msg = fmt.Sprintf("%q", planOut)
+		obj.Msg = fmt.Sprintf("%s", planOut)
 	}
 
 	c <- obj
