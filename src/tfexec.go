@@ -30,19 +30,21 @@ func TfExec(workingDir string, tfExecPath string, tfPlanPath string, c chan TfOb
 
 	obj.Error = false
 
+	var plan bool
 	err = tf.Init(context.Background(), tfexec.Upgrade(true))
-	if err != nil {
-		log.Fatalf("error running Init: %s", err)
-	}
-
-	planOpts := []tfexec.PlanOption{
-		tfexec.Lock(false),
-		tfexec.Out(tfPlanPath),
-	}
-	plan, err := tf.Plan(context.Background(), planOpts...)
 	if err != nil {
 		obj.Error = true
 		obj.Msg = fmt.Sprintf("%s", err)
+	} else {
+		planOpts := []tfexec.PlanOption{
+			tfexec.Lock(false),
+			tfexec.Out(tfPlanPath),
+		}
+		plan, err = tf.Plan(context.Background(), planOpts...)
+		if err != nil {
+			obj.Error = true
+			obj.Msg = fmt.Sprintf("%s", err)
+		}
 	}
 
 	obj.OutOfSync = plan
