@@ -10,6 +10,8 @@
 Terraform free open source drift-detection service.
 
 [![asciicast](https://asciinema.org/a/2tC6k7w6K5xKVAAzhUc6iplAk.svg)](https://asciinema.org/a/2tC6k7w6K5xKVAAzhUc6iplAk)
+![2023-10-05-output-cli](./docs/imgs/2023-10-05-output-cli.png)
+![2023-10-05-output-chrome](./docs/imgs/2023-10-05-output-chrome.png)
 
 ## The pain
 As DevOps, we take much care building pipelines with Terraform that works with git flows. However, as opposed to AWS CloudFormation or Terraform Enterprise, for example, we have no free open source drift-detection service, and so we are blind to changes in our infraestructure, specially inside the folders we don't access so much.
