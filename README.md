@@ -9,7 +9,7 @@
 ## The idea
 Terraform free open source drift-detection service.
 
-[![asciicast](https://asciinema.org/a/2tC6k7w6K5xKVAAzhUc6iplAk.svg)](https://asciinema.org/a/2tC6k7w6K5xKVAAzhUc6iplAk)
+[![asciicast](https://asciinema.org/a/AKGJH74SrRB0OGIe0l9PDredC.svg)](https://asciinema.org/a/AKGJH74SrRB0OGIe0l9PDredC)
 ![2023-10-05-output-cli](./docs/imgs/2023-10-05-output-cli.png)
 ![2023-10-05-output-chrome](./docs/imgs/2023-10-05-output-chrome.png)
 
