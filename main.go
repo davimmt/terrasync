@@ -61,6 +61,7 @@ func main() {
 	// and updates the server respose
 	go http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", httpServerPort), nil)
 	log.Printf("Listening on port %s...\n", httpServerPort)
+	log.Printf("Directories found: %q", dirs)
 
 	terrasyncChannel := make(chan src.TfObject)
 	for true {

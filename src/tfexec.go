@@ -23,6 +23,7 @@ var tfPlanOutClean = [2]string{
 
 func TfExec(workingDir string, tfExecPath string, tfPlanPath string, c chan TfObject) {
 	obj := TfObject{Path: workingDir}
+	log.Printf("Started working on: %q", obj.Path)
 	tf, err := tfexec.NewTerraform(workingDir, tfExecPath)
 	if err != nil {
 		log.Fatalf("Error running NewTerraform: %s", err)
@@ -62,5 +63,6 @@ func TfExec(workingDir string, tfExecPath string, tfPlanPath string, c chan TfOb
 		obj.Msg = fmt.Sprintf("%s", planOut)
 	}
 
+	log.Printf("Finished working on: %q", obj.Path)
 	c <- obj
 }
