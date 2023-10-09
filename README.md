@@ -40,3 +40,14 @@ make
 # if you want to build and run in docker
 make docker
 ```
+
+## Features to ~maybe~ add
+- [ ] Tests
+- [ ] Pipeline to build and push container image somewhere
+- [ ] Pre-hook scripts
+    - In case files need to be changed before running terraform commands
+- [ ] Post-hook scripts
+    - In case pipelines need to be trigged based on state
+- [ ] Slack notifications
+- [ ] SMTP notifications
+- [ ] Terragrunt support
