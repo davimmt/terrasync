@@ -1,3 +1,3 @@
 output "out" {
-  value = 100 + basename(abspath(path.module))
+  value = 100 + "error"
 }
