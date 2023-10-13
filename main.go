@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// Find all directories with .tf files
-	dirs := src.FindTfDirs(rootWorkingDir)
+	dirs := src.FindTfDirs(os.Getenv("TERRASYNC_GIT_REPO_URL"), rootWorkingDir)
 
 	// Prepare variable to receive terrasyncChannel output
 	result := make([]src.TfObject, len(dirs))

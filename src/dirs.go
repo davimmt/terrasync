@@ -6,9 +6,23 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/go-git/go-git/v5"
 )
 
-func FindTfDirs(rootWorkingDir string) []string {
+func FindTfDirs(gitRepoUrl string, rootWorkingDir string) []string {
+	if gitRepoUrl != "" {
+		_, err := git.PlainClone(rootWorkingDir, false, &git.CloneOptions{
+			URL:           gitRepoUrl,
+			SingleBranch:  true,
+			ReferenceName: "HEAD",
+			Depth:         1,
+		})
+		if err != nil {
+			log.Fatalf("Error running git.PlainClone: %s", err)
+		}
+	}
+
 	dirs := []string{}
 	filepath.WalkDir(rootWorkingDir, func(s string, d fs.DirEntry, err error) error {
 		if err != nil {
