@@ -1,6 +1,8 @@
 package src
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 
@@ -43,4 +45,10 @@ func HttpServerHandler(w http.ResponseWriter, result []TfObject) {
 	}
 
 	t.Render()
+}
+
+func HttpServerApiHandler(w http.ResponseWriter, result []TfObject) {
+	w.WriteHeader(http.StatusOK)
+	j, _ := json.MarshalIndent(result, "", " ")
+	fmt.Fprintf(w, "%s", j)
 }

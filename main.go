@@ -53,8 +53,15 @@ func main() {
 	result := make([]src.TfObject, len(dirs))
 
 	// This is the function that outputs the results as HTTP respose
+	// formated as a user-friendly table
 	http.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		src.HttpServerHandler(w, result)
+	})
+
+	// This function also otputs the results as HTTP respose, but formated as JSON
+	// It uses the same input data channel as the root handler
+	http.HandleFunc("/api", func(w http.ResponseWriter, _ *http.Request) {
+		src.HttpServerApiHandler(w, result)
 	})
 
 	// Open HTTP server using goroutine so terraform plan routine runs forever
